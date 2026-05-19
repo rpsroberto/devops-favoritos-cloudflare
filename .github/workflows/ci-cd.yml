@@ -71,6 +71,8 @@ jobs:
       # O nome do projeto deve existir no Cloudflare Pages ou ser criado no primeiro deploy.
       - name: Publicar no Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
