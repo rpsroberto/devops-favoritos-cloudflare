@@ -65,7 +65,9 @@ jobs:
           npm ci
           npm run build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          # Em produção, o navegador chama o proxy /api no Cloudflare Pages.
+          # A função _worker.js repassa as chamadas para o backend no Render.
+          VITE_API_URL: /api
 
       # Requer configurar os secrets CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID.
       # O nome do projeto deve existir no Cloudflare Pages ou ser criado no primeiro deploy.

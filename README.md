@@ -11,7 +11,7 @@ Plataforma full stack para clientes salvarem produtos favoritos para futuras com
 - API externa: Fake Store API
 - Containers: Docker e Docker Compose
 - CI/CD: GitHub Actions
-- Deploy: Cloudflare Pages para frontend e Render como alternativa simples para backend
+- Deploy: Cloudflare Pages para frontend e Render para backend
 
 ## Arquitetura
 
@@ -241,8 +241,10 @@ Para este projeto, o `CLOUDFLARE_ACCOUNT_ID` usado no Cloudflare Pages é:
    - Build output directory: `dist`
    - Root directory: `frontend`
 6. Configure a variável:
-   - `VITE_API_URL`: URL pública do backend
+   - `VITE_API_URL`: `/api`
 7. Faça o deploy.
+
+O frontend publicado usa um proxy em `frontend/public/_worker.js`. Assim, o navegador chama `/api` no próprio domínio do Cloudflare Pages, e o Cloudflare encaminha a requisição para o backend no Render.
 
 Domínio:
 
