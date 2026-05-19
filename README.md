@@ -223,6 +223,12 @@ Secrets necessários para deploy:
 - `CLOUDFLARE_ACCOUNT_ID`
 - `VITE_API_URL`
 
+Para este projeto, o `CLOUDFLARE_ACCOUNT_ID` usado no Cloudflare Pages é:
+
+```text
+4f6c66c31f45f759c221baad6ef5b1bd
+```
+
 ## Deploy no Cloudflare Pages
 
 1. Crie uma conta em https://dash.cloudflare.com.
@@ -337,7 +343,8 @@ Adicione aqui os prints após rodar a aplicação:
 ## Links finais
 
 - Repositório GitHub: https://github.com/rpsroberto/devops-favoritos-cloudflare
-- Aplicação publicada: inserir depois do deploy
+- Aplicação publicada: https://devops-favoritos-cloudflare.pages.dev
+- Deploy de produção criado: https://9f6a4c6a.devops-favoritos-cloudflare.pages.dev
 
 ## Equipe
 
