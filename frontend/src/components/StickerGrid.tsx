@@ -49,6 +49,7 @@ export function StickerGrid({
                 <small>
                   Nº {sticker.number} · {sticker.position} · {sticker.rarity}
                 </small>
+                {sticker.source && <small className="source-label">Fonte: {sticker.source}</small>}
               </div>
               {(primaryActionLabel || secondaryActionLabel) && (
                 <div className="sticker-actions">

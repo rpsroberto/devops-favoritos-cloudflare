@@ -6,6 +6,8 @@ export interface Sticker {
   position: string;
   rarity: "Comum" | "Especial" | "Lendária";
   image: string;
+  source?: string;
+  sourceUrl?: string;
   addedAt?: string;
 }
 

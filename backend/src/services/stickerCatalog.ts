@@ -6,9 +6,55 @@ export interface Sticker {
   position: string;
   rarity: "Comum" | "Especial" | "Lendária";
   image: string;
+  source?: string;
+  sourceUrl?: string;
 }
 
 export const stickerCatalog: Sticker[] = [
+  {
+    code: "FWC-ALB",
+    number: 0,
+    player: "Álbum Oficial Panini",
+    country: "FIFA World Cup 2026",
+    position: "Produto oficial",
+    rarity: "Lendária",
+    image: "https://www.panini.de/media/catalog/product/o/f/offizielle-fifa-world-cup-2026-stickerkollektion-album-005460.jpg",
+    source: "Panini Oficial",
+    sourceUrl: "https://www.panini.de/shp_deu_de/offizielle-fifa-world-cup-2026-stickerkollektion-album-005460ad-de01.html"
+  },
+  {
+    code: "FWC-BOX",
+    number: 100,
+    player: "Treasure Box Panini",
+    country: "FIFA World Cup 2026",
+    position: "Produto oficial",
+    rarity: "Lendária",
+    image: "https://www.panini.de/media/catalog/product/o/f/offizielle-fifa-world-cup-2026-stickerkollektion-treasure-box-nohc-005460.jpg",
+    source: "Panini Oficial",
+    sourceUrl: "https://www.panini.de/shp_deu_de/offizielle-fifa-world-cup-2026-stickerkollektion-treasure-box-005460cofdc-de01.html"
+  },
+  {
+    code: "FWC-PK1",
+    number: 1,
+    player: "Envelope de Figurinhas",
+    country: "FIFA World Cup 2026",
+    position: "Produto oficial",
+    rarity: "Especial",
+    image: "https://www.panini.de/media/catalog/product/o/f/offizielle-fifa-world-cup-2026-stickerkollektion-sticker-mix1-005460_4.jpg",
+    source: "Panini Oficial",
+    sourceUrl: "https://www.panini.de/shp_deu_de/offizielle-fifa-world-cup-2026-stickerkollektion-treasure-box-005460cofdc-de01.html"
+  },
+  {
+    code: "FWC-PK2",
+    number: 2,
+    player: "Envelope de Figurinhas",
+    country: "FIFA World Cup 2026",
+    position: "Produto oficial",
+    rarity: "Especial",
+    image: "https://www.panini.de/media/catalog/product/o/f/offizielle-fifa-world-cup-2026-stickerkollektion-sticker-mix2-005460_4.jpg",
+    source: "Panini Oficial",
+    sourceUrl: "https://www.panini.de/shp_deu_de/offizielle-fifa-world-cup-2026-stickerkollektion-treasure-box-005460cofdc-de01.html"
+  },
   {
     code: "BRA-10",
     number: 10,

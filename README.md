@@ -34,11 +34,13 @@ devops-favoritos-cloudflare/
 
 O frontend publicado no Cloudflare Pages chama `/api`. A função `frontend/public/_worker.js` atua como proxy e encaminha essas chamadas para o backend no Render.
 
+Algumas imagens do catálogo usam URLs públicas de produtos oficiais da Panini como referência visual acadêmica/demonstrativa. As figurinhas de jogadores continuam simuladas para evitar cópia indevida de cromos oficiais.
+
 ## Funcionalidades
 
 - Criar, listar, editar e remover colecionadores
 - Bloquear e-mail duplicado para colecionadores
-- Listar catálogo local de figurinhas da Copa
+- Listar catálogo local de figurinhas da Copa com referências visuais oficiais da Panini
 - Marcar figurinhas desejadas por colecionador
 - Marcar figurinhas repetidas para troca
 - Remover figurinhas das listas
