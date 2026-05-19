@@ -1,12 +1,14 @@
-export interface Client {
+export interface Collector {
   id: string;
   name: string;
   email: string;
+  city?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface ClientPayload {
+export interface CollectorPayload {
   name: string;
   email: string;
+  city?: string;
 }

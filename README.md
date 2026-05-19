@@ -1,6 +1,6 @@
-# DevOps Favoritos Cloudflare
+# CopaTrade
 
-Plataforma full stack para clientes salvarem produtos favoritos para futuras compras. O projeto foi criado para uma atividade prática de DevOps, com API REST, frontend, banco PostgreSQL, Prisma, Docker Compose, GitHub Actions e preparação para deploy no Cloudflare Pages.
+Plataforma full stack para colecionadores de figurinhas da Copa cadastrarem figurinhas desejadas, repetidas e encontrarem possíveis trocas online. O projeto mantém a proposta prática de DevOps com API REST, frontend, PostgreSQL, Prisma, Docker Compose, GitHub Actions, backend no Render e frontend no Cloudflare Pages.
 
 ## Tecnologias
 
@@ -8,10 +8,10 @@ Plataforma full stack para clientes salvarem produtos favoritos para futuras com
 - Backend: Node.js, Express e TypeScript
 - Banco de dados: PostgreSQL
 - ORM: Prisma
-- API externa: Fake Store API
 - Containers: Docker e Docker Compose
 - CI/CD: GitHub Actions
-- Deploy: Cloudflare Pages para frontend e Render para backend
+- Deploy frontend: Cloudflare Pages
+- Deploy backend: Render
 
 ## Arquitetura
 
@@ -23,27 +23,50 @@ devops-favoritos-cloudflare/
 │   ├── src/services/
 │   ├── src/repositories/
 │   ├── src/middlewares/
-│   ├── src/prisma/
 │   └── prisma/
 ├── frontend/
+│   ├── public/_worker.js
 │   └── src/
 ├── .github/workflows/
 ├── docker-compose.yml
 └── README.md
 ```
 
-O backend concentra as regras de negócio em services, o acesso a dados em repositories e a entrada HTTP em controllers. O frontend consome a API local do backend, que também funciona como camada intermediária para buscar produtos da Fake Store API.
+O frontend publicado no Cloudflare Pages chama `/api`. A função `frontend/public/_worker.js` atua como proxy e encaminha essas chamadas para o backend no Render.
 
 ## Funcionalidades
 
-- Criar, listar, editar e remover clientes
-- Bloquear e-mail duplicado para clientes
-- Listar produtos da Fake Store API
-- Adicionar produto favorito para um cliente
-- Bloquear favorito duplicado para o mesmo cliente
-- Listar favoritos por cliente com título, imagem, preço e avaliação
-- Remover favorito
-- Interface responsiva com rodapé contendo o nome da equipe
+- Criar, listar, editar e remover colecionadores
+- Bloquear e-mail duplicado para colecionadores
+- Listar catálogo local de figurinhas da Copa
+- Marcar figurinhas desejadas por colecionador
+- Marcar figurinhas repetidas para troca
+- Remover figurinhas das listas
+- Gerar sugestões de troca entre colecionadores
+- Interface responsiva com rodapé da equipe
+
+## Modelagem
+
+### Collector
+
+- `id`
+- `name`
+- `email`
+- `city`
+- `createdAt`
+- `updatedAt`
+
+Regra: `email` é único.
+
+### StickerItem
+
+- `id`
+- `collectorId`
+- `stickerCode`
+- `type`: `WANTED` ou `DUPLICATE`
+- `createdAt`
+
+Regra: a combinação `collectorId + stickerCode + type` é única.
 
 ## Rotas da API
 
@@ -53,46 +76,61 @@ O backend concentra as regras de negócio em services, o acesso a dados em repos
 | --- | --- | --- |
 | GET | `/health` | Verifica se a API está online |
 
-### Clientes
+### Colecionadores
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| POST | `/clients` | Cria cliente |
-| GET | `/clients` | Lista clientes |
-| GET | `/clients/:id` | Busca cliente por ID |
-| PUT | `/clients/:id` | Atualiza cliente |
-| DELETE | `/clients/:id` | Remove cliente |
+| POST | `/collectors` | Cria colecionador |
+| GET | `/collectors` | Lista colecionadores |
+| GET | `/collectors/:id` | Busca colecionador por ID |
+| PUT | `/collectors/:id` | Atualiza colecionador |
+| DELETE | `/collectors/:id` | Remove colecionador |
 
-Payload para criar ou editar cliente:
+Payload:
 
 ```json
 {
-  "name": "Maria Silva",
-  "email": "maria@email.com"
+  "name": "Roberto Sousa",
+  "email": "roberto@email.com",
+  "city": "Fortaleza"
 }
 ```
 
-### Produtos
+### Figurinhas
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| GET | `/products` | Lista produtos vindos da Fake Store API |
+| GET | `/stickers` | Lista figurinhas do álbum |
 
-### Favoritos
+### Desejadas
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| POST | `/clients/:clientId/favorites` | Adiciona favorito |
-| GET | `/clients/:clientId/favorites` | Lista favoritos do cliente |
-| DELETE | `/clients/:clientId/favorites/:productId` | Remove favorito |
+| POST | `/collectors/:collectorId/wanted` | Adiciona figurinha desejada |
+| GET | `/collectors/:collectorId/wanted` | Lista desejadas do colecionador |
+| DELETE | `/collectors/:collectorId/wanted/:stickerCode` | Remove desejada |
 
-Payload para adicionar favorito:
+Payload:
 
 ```json
 {
-  "productId": 1
+  "stickerCode": "BRA-10"
 }
 ```
+
+### Repetidas
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | `/collectors/:collectorId/duplicates` | Adiciona figurinha repetida |
+| GET | `/collectors/:collectorId/duplicates` | Lista repetidas do colecionador |
+| DELETE | `/collectors/:collectorId/duplicates/:stickerCode` | Remove repetida |
+
+### Trocas
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | `/matches` | Lista possíveis trocas entre colecionadores |
 
 ## Pré-requisitos
 
@@ -101,6 +139,7 @@ Payload para adicionar favorito:
 - Git
 - Conta no GitHub
 - Conta no Cloudflare
+- Conta no Render
 
 ## Como clonar
 
@@ -109,7 +148,7 @@ git clone https://github.com/rpsroberto/devops-favoritos-cloudflare.git
 cd devops-favoritos-cloudflare
 ```
 
-## Configuração de ambiente
+## Variáveis de ambiente
 
 Backend:
 
@@ -123,19 +162,27 @@ Frontend:
 cp frontend/.env.example frontend/.env
 ```
 
-Variáveis principais:
+Backend:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/devops_favoritos?schema=public"
 PORT=3333
 FRONTEND_URL="http://localhost:5173"
-FAKE_STORE_API_URL="https://fakestoreapi.com"
+```
+
+Frontend local:
+
+```env
 VITE_API_URL="http://localhost:3333"
 ```
 
-## Rodando com Docker
+Frontend publicado no Cloudflare Pages:
 
-Na raiz do projeto:
+```env
+VITE_API_URL="/api"
+```
+
+## Rodando com Docker
 
 ```bash
 docker compose up --build
@@ -148,25 +195,12 @@ Acessos locais:
 - Health check: http://localhost:3333/health
 - PostgreSQL: localhost:5432
 
-O container do backend executa `prisma migrate deploy` antes de iniciar a API.
-
 ## Rodando sem Docker
-
-Suba um PostgreSQL local e configure `backend/.env`.
 
 Backend:
 
 ```bash
 cd backend
-npm install
-npx prisma generate
-npx prisma migrate dev
-npm run dev
-```
-
-Se preferir instalação estritamente baseada no `package-lock.json`:
-
-```bash
 npm ci
 npx prisma generate
 npx prisma migrate dev
@@ -177,13 +211,13 @@ Frontend:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
 ## Migrations do Prisma
 
-Criar nova migration após alterar `backend/prisma/schema.prisma`:
+Criar migration:
 
 ```bash
 cd backend
@@ -197,120 +231,66 @@ cd backend
 npx prisma migrate deploy
 ```
 
-Abrir Prisma Studio:
-
-```bash
-cd backend
-npx prisma studio
-```
-
 ## GitHub Actions
 
-O workflow fica em `.github/workflows/ci-cd.yml` e executa:
+O workflow em `.github/workflows/ci-cd.yml` executa:
 
-1. Checkout do repositório
-2. Configuração do Node.js 20
-3. Instalação de dependências do backend
+1. Checkout
+2. Setup Node.js 20
+3. Instalação do backend
 4. Geração do Prisma Client
-5. Build TypeScript do backend
-6. Instalação de dependências do frontend
-7. Build de produção do frontend
-8. Deploy automático do frontend no Cloudflare Pages quando houver push na branch `main`
+5. Build do backend
+6. Instalação do frontend
+7. Build do frontend
+8. Deploy do frontend no Cloudflare Pages em push na `main`
 
-Secrets necessários para deploy:
+Secrets usados:
 
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 - `VITE_API_URL`
 
-Para este projeto, o `CLOUDFLARE_ACCOUNT_ID` usado no Cloudflare Pages é:
+## Deploy
+
+### Frontend Cloudflare Pages
+
+- Projeto: `devops-favoritos-cloudflare`
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Variável de produção: `VITE_API_URL=/api`
+
+URL publicada:
 
 ```text
-4f6c66c31f45f759c221baad6ef5b1bd
+https://devops-favoritos-cloudflare.pages.dev
 ```
 
-## Deploy no Cloudflare Pages
+### Backend Render
 
-1. Crie uma conta em https://dash.cloudflare.com.
-2. Acesse Workers & Pages.
-3. Crie um projeto do tipo Pages.
-4. Conecte o repositório `devops-favoritos-cloudflare`.
-5. Configure:
-   - Framework preset: Vite
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Root directory: `frontend`
-6. Configure a variável:
-   - `VITE_API_URL`: `/api`
-7. Faça o deploy.
+- Serviço: `devops-favoritos-api`
+- Root directory: `backend`
+- Build command: `npm ci && npx prisma generate && npm run build`
+- Start command: `npx prisma migrate deploy && npm run start`
 
-O frontend publicado usa um proxy em `frontend/public/_worker.js`. Assim, o navegador chama `/api` no próprio domínio do Cloudflare Pages, e o Cloudflare encaminha a requisição para o backend no Render.
+Variáveis:
 
-Domínio:
+- `DATABASE_URL`
+- `PORT=3333`
+- `FRONTEND_URL=https://devops-favoritos-cloudflare.pages.dev`
 
-- Use o domínio gratuito `*.pages.dev` criado pelo Cloudflare.
-- Opcionalmente, configure um domínio próprio em Custom Domains.
+Health:
 
-Monitoramento:
-
-- Ative Cloudflare Web Analytics para métricas de acesso.
-- Use os logs de deploy do Pages para investigar falhas de build.
-- Para Workers, use Workers Observability e logs em tempo real.
-
-## Backend em produção
-
-Para apresentação acadêmica, a alternativa mais simples é publicar o backend no Render:
-
-1. Crie um banco PostgreSQL no Render.
-2. Crie um Web Service apontando para o diretório `backend`.
-3. Configure:
-   - Build command: `npm install && npx prisma generate && npm run build`
-   - Start command: `npx prisma migrate deploy && npm run start`
-4. Configure variáveis:
-   - `DATABASE_URL`
-   - `PORT`
-   - `FRONTEND_URL`
-   - `FAKE_STORE_API_URL`
-
-Alternativa com Cloudflare Workers:
-
-- Express tradicional não roda diretamente em Workers sem adaptação.
-- Para Workers, o backend pode ser migrado para Hono ou itty-router.
-- O PostgreSQL deve ficar externo, usando Neon, Supabase ou outro banco serverless.
-- O Prisma em Workers exige Prisma Accelerate ou driver compatível com ambiente edge.
-
-## Docker
-
-Serviços definidos no `docker-compose.yml`:
-
-- `postgres`: banco PostgreSQL 16
-- `backend`: API Express com Prisma
-- `frontend`: React/Vite
-
-Comando principal:
-
-```bash
-docker compose up --build
-```
-
-Parar containers:
-
-```bash
-docker compose down
-```
-
-Parar e remover volume do banco:
-
-```bash
-docker compose down -v
+```text
+https://devops-favoritos-api.onrender.com/health
 ```
 
 ## Organização no GitHub
 
-Nome sugerido do repositório:
+Repositório:
 
 ```text
-devops-favoritos-cloudflare
+https://github.com/rpsroberto/devops-favoritos-cloudflare
 ```
 
 Branch principal:
@@ -323,31 +303,27 @@ Sugestão de commits:
 
 ```text
 feat: estrutura inicial do projeto
-feat: criação da API de clientes
-feat: integração com Fake Store API
-feat: gerenciamento de favoritos
-feat: criação do frontend
-chore: configuração docker
-ci: configuração github actions
-docs: atualização do README
+feat: cadastro de colecionadores
+feat: catalogo de figurinhas
+feat: listas de desejadas e repetidas
+feat: sugestoes de troca
+chore: configuracao docker
+ci: configuracao github actions
+docs: atualizacao do readme
 ```
 
 ## Prints
 
-Adicione aqui os prints após rodar a aplicação:
+Espaço para prints:
 
-- Tela de clientes
-- Catálogo de produtos
-- Lista de favoritos
-- Pipeline no GitHub Actions
+- Cadastro de colecionadores
+- Álbum de figurinhas
+- Lista de desejadas
+- Lista de repetidas
+- Sugestões de troca
+- Pipeline verde no GitHub Actions
 - Deploy no Cloudflare Pages
-
-## Links finais
-
-- Repositório GitHub: https://github.com/rpsroberto/devops-favoritos-cloudflare
-- Aplicação publicada: https://devops-favoritos-cloudflare.pages.dev
-- Deploy de produção criado: https://9f6a4c6a.devops-favoritos-cloudflare.pages.dev
 
 ## Equipe
 
-Equipe DevOps Favoritos
+Equipe CopaTrade

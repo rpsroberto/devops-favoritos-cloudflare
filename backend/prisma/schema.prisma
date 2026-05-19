@@ -7,25 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Client {
-  id        String     @id @default(uuid())
+model Collector {
+  id        String        @id @default(uuid())
   name      String
-  email     String     @unique
-  favorites Favorite[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  email     String        @unique
+  city      String?
+  items     StickerItem[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  @@map("clients")
+  @@map("collectors")
 }
 
-model Favorite {
-  id        String   @id @default(uuid())
-  clientId  String
-  productId Int
-  createdAt DateTime @default(now())
+model StickerItem {
+  id          String      @id @default(uuid())
+  collectorId String
+  stickerCode String
+  type        StickerType
+  createdAt   DateTime    @default(now())
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  collector Collector @relation(fields: [collectorId], references: [id], onDelete: Cascade)
 
-  @@unique([clientId, productId])
-  @@map("favorites")
+  @@unique([collectorId, stickerCode, type])
+  @@map("sticker_items")
+}
+
+enum StickerType {
+  WANTED
+  DUPLICATE
 }

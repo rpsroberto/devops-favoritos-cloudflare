@@ -1,7 +1,7 @@
 {
-  "name": "devops-favoritos-backend",
+  "name": "copatrade-backend",
   "version": "1.0.0",
-  "description": "API REST para clientes e produtos favoritos.",
+  "description": "API REST para trocas de figurinhas entre colecionadores.",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",

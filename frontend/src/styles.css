@@ -162,7 +162,7 @@ label {
 
 .secondary,
 .row-actions button,
-.product-card button {
+.sticker-card button {
   background: #e9eef3;
   color: #17202a;
 }
@@ -172,12 +172,12 @@ label {
   color: #a33a2c !important;
 }
 
-.client-list {
+.collector-list {
   display: grid;
   gap: 12px;
 }
 
-.client-card {
+.collector-card {
   border: 1px solid #dce5ec;
   border-radius: 8px;
   display: grid;
@@ -185,12 +185,12 @@ label {
   padding: 12px;
 }
 
-.client-card.selected {
+.collector-card.selected {
   border-color: #0f766e;
   box-shadow: inset 4px 0 0 #0f766e;
 }
 
-.client-main {
+.collector-main {
   background: transparent;
   color: #17202a;
   display: grid;
@@ -201,12 +201,12 @@ label {
   text-align: left;
 }
 
-.client-main small,
-.product-content small {
+.collector-main small,
+.sticker-content small {
   color: #607d8b;
 }
 
-.selected-client {
+.selected-collector {
   align-items: center;
   background: #ffffff;
   border-left: 5px solid #d95d39;
@@ -217,24 +217,24 @@ label {
   padding: 16px 18px;
 }
 
-.selected-client span {
+.selected-collector span {
   color: #607d8b;
   font-size: 0.86rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.product-section {
+.sticker-section {
   overflow: hidden;
 }
 
-.product-grid {
+.sticker-grid {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 
-.product-card {
+.sticker-card {
   border: 1px solid #dce5ec;
   border-radius: 8px;
   display: grid;
@@ -243,40 +243,59 @@ label {
   overflow: hidden;
 }
 
-.product-image {
+.sticker-image {
   align-items: center;
   background: #f8fafc;
   display: flex;
   justify-content: center;
   padding: 16px;
+  position: relative;
 }
 
-.product-image img {
+.sticker-image img {
   height: 100%;
   max-width: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  width: 100%;
 }
 
-.product-content {
+.sticker-image span {
+  background: #12343b;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  left: 12px;
+  padding: 6px 10px;
+  position: absolute;
+  top: 12px;
+}
+
+.sticker-content {
   display: grid;
   gap: 8px;
   padding: 14px;
 }
 
-.product-content h3 {
+.sticker-content h3 {
   font-size: 0.96rem;
   line-height: 1.35;
   margin: 0;
 }
 
-.product-content p {
+.sticker-content p {
   color: #0f766e;
   font-size: 1.05rem;
   font-weight: 800;
   margin: 0;
 }
 
-.product-card button {
+.sticker-actions {
+  display: grid;
+  gap: 1px;
+}
+
+.sticker-card button {
   border-radius: 0;
 }
 
@@ -292,6 +311,31 @@ footer {
   text-align: center;
 }
 
+.collection-columns {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.match-list {
+  display: grid;
+  gap: 12px;
+}
+
+.match-card {
+  align-items: center;
+  border: 1px solid #dce5ec;
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 1fr 1.2fr 1fr 1.4fr;
+  padding: 14px;
+}
+
+.match-card span {
+  color: #607d8b;
+}
+
 @media (max-width: 920px) {
   .dashboard {
     grid-template-columns: 1fr;
@@ -305,7 +349,9 @@ footer {
     gap: 16px;
   }
 
-  .product-grid {
+  .sticker-grid,
+  .collection-columns,
+  .match-card {
     grid-template-columns: 1fr;
   }
 }

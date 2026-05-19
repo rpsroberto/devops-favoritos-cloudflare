@@ -1,42 +1,52 @@
 import { useEffect, useMemo, useState } from "react";
-import { ClientForm } from "../components/ClientForm";
-import { ClientList } from "../components/ClientList";
-import { ProductGrid } from "../components/ProductGrid";
-import { clientService } from "../services/clientService";
-import { productService } from "../services/productService";
-import { Client, ClientPayload } from "../types/client";
-import { Product } from "../types/product";
+import { CollectorForm } from "../components/CollectorForm";
+import { CollectorList } from "../components/CollectorList";
+import { MatchList } from "../components/MatchList";
+import { StickerGrid } from "../components/StickerGrid";
+import { collectorService } from "../services/collectorService";
+import { stickerService } from "../services/stickerService";
+import { Collector, CollectorPayload } from "../types/collector";
+import { Sticker, TradeMatch } from "../types/sticker";
 
 export function Home() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [favorites, setFavorites] = useState<Product[]>([]);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [collectors, setCollectors] = useState<Collector[]>([]);
+  const [stickers, setStickers] = useState<Sticker[]>([]);
+  const [wantedStickers, setWantedStickers] = useState<Sticker[]>([]);
+  const [duplicateStickers, setDuplicateStickers] = useState<Sticker[]>([]);
+  const [matches, setMatches] = useState<TradeMatch[]>([]);
+  const [selectedCollector, setSelectedCollector] = useState<Collector | null>(null);
+  const [editingCollector, setEditingCollector] = useState<Collector | null>(null);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  const favoriteIds = useMemo(() => favorites.map((favorite) => favorite.id), [favorites]);
+  const wantedCodes = useMemo(() => wantedStickers.map((sticker) => sticker.code), [wantedStickers]);
+  const duplicateCodes = useMemo(() => duplicateStickers.map((sticker) => sticker.code), [duplicateStickers]);
 
   useEffect(() => {
     void loadInitialData();
   }, []);
 
   useEffect(() => {
-    if (selectedClient) {
-      void loadFavorites(selectedClient.id);
+    if (selectedCollector) {
+      void loadCollectorLists(selectedCollector.id);
     } else {
-      setFavorites([]);
+      setWantedStickers([]);
+      setDuplicateStickers([]);
     }
-  }, [selectedClient]);
+  }, [selectedCollector]);
 
   async function loadInitialData() {
     try {
       setIsLoading(true);
-      const [clientList, productList] = await Promise.all([clientService.list(), productService.list()]);
-      setClients(clientList);
-      setProducts(productList);
-      setSelectedClient(clientList[0] ?? null);
+      const [collectorList, stickerList, matchList] = await Promise.all([
+        collectorService.list(),
+        stickerService.listCatalog(),
+        stickerService.listMatches()
+      ]);
+      setCollectors(collectorList);
+      setStickers(stickerList);
+      setMatches(matchList);
+      setSelectedCollector(collectorList[0] ?? null);
     } catch (error) {
       showError(error);
     } finally {
@@ -44,79 +54,115 @@ export function Home() {
     }
   }
 
-  async function loadFavorites(clientId: string) {
+  async function loadCollectorLists(collectorId: string) {
     try {
-      const favoriteList = await productService.listFavorites(clientId);
-      setFavorites(favoriteList);
+      const [wanted, duplicates, matchList] = await Promise.all([
+        stickerService.listWanted(collectorId),
+        stickerService.listDuplicates(collectorId),
+        stickerService.listMatches()
+      ]);
+      setWantedStickers(wanted);
+      setDuplicateStickers(duplicates);
+      setMatches(matchList);
     } catch (error) {
       showError(error);
     }
   }
 
-  async function handleSubmitClient(payload: ClientPayload) {
+  async function handleSubmitCollector(payload: CollectorPayload) {
     try {
-      if (editingClient) {
-        const updatedClient = await clientService.update(editingClient.id, payload);
-        setClients((currentClients) =>
-          currentClients.map((client) => (client.id === updatedClient.id ? updatedClient : client))
+      if (editingCollector) {
+        const updatedCollector = await collectorService.update(editingCollector.id, payload);
+        setCollectors((currentCollectors) =>
+          currentCollectors.map((collector) => (collector.id === updatedCollector.id ? updatedCollector : collector))
         );
-        setSelectedClient(updatedClient);
-        setEditingClient(null);
-        setMessage("Cliente atualizado com sucesso.");
+        setSelectedCollector(updatedCollector);
+        setEditingCollector(null);
+        setMessage("Colecionador atualizado com sucesso.");
         return;
       }
 
-      const createdClient = await clientService.create(payload);
-      setClients((currentClients) => [createdClient, ...currentClients]);
-      setSelectedClient(createdClient);
-      setMessage("Cliente criado com sucesso.");
+      const createdCollector = await collectorService.create(payload);
+      setCollectors((currentCollectors) => [createdCollector, ...currentCollectors]);
+      setSelectedCollector(createdCollector);
+      setMessage("Colecionador criado com sucesso.");
     } catch (error) {
       showError(error);
     }
   }
 
-  async function handleRemoveClient(client: Client) {
-    const confirmed = window.confirm(`Remover o cliente ${client.name}?`);
+  async function handleRemoveCollector(collector: Collector) {
+    const confirmed = window.confirm(`Remover o colecionador ${collector.name}?`);
 
     if (!confirmed) {
       return;
     }
 
     try {
-      await clientService.remove(client.id);
-      const nextClients = clients.filter((currentClient) => currentClient.id !== client.id);
-      setClients(nextClients);
-      setSelectedClient(nextClients[0] ?? null);
-      setMessage("Cliente removido com sucesso.");
+      await collectorService.remove(collector.id);
+      const nextCollectors = collectors.filter((currentCollector) => currentCollector.id !== collector.id);
+      setCollectors(nextCollectors);
+      setSelectedCollector(nextCollectors[0] ?? null);
+      setMessage("Colecionador removido com sucesso.");
+      await loadInitialData();
     } catch (error) {
       showError(error);
     }
   }
 
-  async function handleAddFavorite(product: Product) {
-    if (!selectedClient) {
-      setMessage("Selecione um cliente antes de favoritar produtos.");
+  async function handleAddWanted(sticker: Sticker) {
+    if (!selectedCollector) {
+      setMessage("Selecione um colecionador antes de marcar figurinhas.");
       return;
     }
 
     try {
-      await productService.addFavorite(selectedClient.id, product.id);
-      await loadFavorites(selectedClient.id);
-      setMessage("Produto adicionado aos favoritos.");
+      await stickerService.addWanted(selectedCollector.id, sticker.code);
+      await loadCollectorLists(selectedCollector.id);
+      setMessage("Figurinha adicionada às desejadas.");
     } catch (error) {
       showError(error);
     }
   }
 
-  async function handleRemoveFavorite(product: Product) {
-    if (!selectedClient) {
+  async function handleAddDuplicate(sticker: Sticker) {
+    if (!selectedCollector) {
+      setMessage("Selecione um colecionador antes de marcar figurinhas.");
       return;
     }
 
     try {
-      await productService.removeFavorite(selectedClient.id, product.id);
-      setFavorites((currentFavorites) => currentFavorites.filter((favorite) => favorite.id !== product.id));
-      setMessage("Produto removido dos favoritos.");
+      await stickerService.addDuplicate(selectedCollector.id, sticker.code);
+      await loadCollectorLists(selectedCollector.id);
+      setMessage("Figurinha adicionada às repetidas para troca.");
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  async function handleRemoveWanted(sticker: Sticker) {
+    if (!selectedCollector) {
+      return;
+    }
+
+    try {
+      await stickerService.removeWanted(selectedCollector.id, sticker.code);
+      await loadCollectorLists(selectedCollector.id);
+      setMessage("Figurinha removida das desejadas.");
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  async function handleRemoveDuplicate(sticker: Sticker) {
+    if (!selectedCollector) {
+      return;
+    }
+
+    try {
+      await stickerService.removeDuplicate(selectedCollector.id, sticker.code);
+      await loadCollectorLists(selectedCollector.id);
+      setMessage("Figurinha removida das repetidas.");
     } catch (error) {
       showError(error);
     }
@@ -130,8 +176,8 @@ export function Home() {
     <div className="app-shell">
       <header className="topbar">
         <div>
-          <p>DevOps + Cloudflare</p>
-          <h1>Favoritos para futuras compras</h1>
+          <p>Trocas online de figurinhas</p>
+          <h1>CopaTrade</h1>
         </div>
         <span className="status">{isLoading ? "Carregando" : "Online"}</span>
       </header>
@@ -140,43 +186,65 @@ export function Home() {
 
       <main className="dashboard">
         <aside className="sidebar">
-          <ClientForm editingClient={editingClient} onSubmit={handleSubmitClient} onCancelEdit={() => setEditingClient(null)} />
-          <ClientList
-            clients={clients}
-            selectedClientId={selectedClient?.id ?? null}
-            onSelect={setSelectedClient}
-            onEdit={setEditingClient}
-            onRemove={handleRemoveClient}
+          <CollectorForm
+            editingCollector={editingCollector}
+            onSubmit={handleSubmitCollector}
+            onCancelEdit={() => setEditingCollector(null)}
+          />
+          <CollectorList
+            collectors={collectors}
+            selectedCollectorId={selectedCollector?.id ?? null}
+            onSelect={setSelectedCollector}
+            onEdit={setEditingCollector}
+            onRemove={handleRemoveCollector}
           />
         </aside>
 
         <section className="content">
-          <div className="selected-client">
-            <span>Cliente selecionado</span>
-            <strong>{selectedClient ? `${selectedClient.name} - ${selectedClient.email}` : "Nenhum cliente selecionado"}</strong>
+          <div className="selected-collector">
+            <span>Colecionador selecionado</span>
+            <strong>
+              {selectedCollector
+                ? `${selectedCollector.name} - ${selectedCollector.city || selectedCollector.email}`
+                : "Nenhum colecionador selecionado"}
+            </strong>
           </div>
 
-          <ProductGrid
-            title="Produtos da Fake Store"
-            products={products}
-            actionLabel="Favoritar"
-            emptyMessage="Nenhum produto encontrado."
-            disabled={!selectedClient}
-            favoriteIds={favoriteIds}
-            onAction={handleAddFavorite}
+          <StickerGrid
+            title="Álbum da Copa"
+            stickers={stickers}
+            emptyMessage="Nenhuma figurinha cadastrada no álbum."
+            primaryActionLabel="Quero"
+            secondaryActionLabel="Tenho repetida"
+            disabled={!selectedCollector}
+            markedPrimaryCodes={wantedCodes}
+            markedSecondaryCodes={duplicateCodes}
+            onPrimaryAction={handleAddWanted}
+            onSecondaryAction={handleAddDuplicate}
           />
 
-          <ProductGrid
-            title="Favoritos do cliente"
-            products={favorites}
-            actionLabel="Remover favorito"
-            emptyMessage="Este cliente ainda não possui favoritos."
-            onAction={handleRemoveFavorite}
-          />
+          <div className="collection-columns">
+            <StickerGrid
+              title="Desejadas"
+              stickers={wantedStickers}
+              emptyMessage="Este colecionador ainda não marcou figurinhas desejadas."
+              primaryActionLabel="Remover"
+              onPrimaryAction={handleRemoveWanted}
+            />
+            <StickerGrid
+              title="Repetidas para troca"
+              stickers={duplicateStickers}
+              emptyMessage="Este colecionador ainda não marcou figurinhas repetidas."
+              primaryActionLabel="Remover"
+              onPrimaryAction={handleRemoveDuplicate}
+            />
+          </div>
+
+          <MatchList matches={matches} />
         </section>
       </main>
 
-      <footer>Equipe DevOps Favoritos - Atividade Prática de DevOps</footer>
+      <footer>Equipe CopaTrade - Atividade Prática de DevOps</footer>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: devops-favoritos-postgres
+    container_name: copatrade-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -19,7 +19,7 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: devops-favoritos-backend
+    container_name: copatrade-backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,14 +27,13 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/devops_favoritos?schema=public
       PORT: 3333
       FRONTEND_URL: http://localhost:5173
-      FAKE_STORE_API_URL: https://fakestoreapi.com
     ports:
       - "3333:3333"
 
   frontend:
     build:
       context: ./frontend
-    container_name: devops-favoritos-frontend
+    container_name: copatrade-frontend
     depends_on:
       - backend
     environment:
